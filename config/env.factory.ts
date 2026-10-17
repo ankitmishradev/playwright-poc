@@ -42,7 +42,8 @@ const getEnvFiles = (env: string) => {
 const loadEnvVars = (envFiles: string[]) => {
     const dotenvResult = dotenv.config({
         path: envFiles,
-        override: false
+        override: false,
+        quiet: true
     });
 
     if (dotenvResult.error) throw new Error('Failed to load environment files');
