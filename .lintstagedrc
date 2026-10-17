@@ -1,4 +1,8 @@
 {
-    "src/**/*.{ts,js,json,cjs,mjs}": ["npm run lint"],
-    "*.{js,ts,json,css,scss,md}": ["npm run format"]
+    "src/**/*.{ts,js,cjs,mjs}": ["npm run lint", "npm run format"],
+    "config/**/*.{ts,js,cjs,mjs,json}": ["npm run lint", "npm run format"],
+    "tests/**/*.{ts,js,cjs,mjs}": ["npm run lint", "npm run format"],
+    "test-data/**/*.{ts,js,cjs,mjs,json}": ["npm run lint", "npm run format"],
+    "scripts/**/*.{ts,js,cjs,mjs}": ["npm run lint", "npm run format"],
+    "*.{json,md,yml,yaml}": ["npm run format"]
 }

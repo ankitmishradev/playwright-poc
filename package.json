@@ -4,29 +4,26 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "playwright test",
-        "test:dev": "ENV=dev playwright test",
-        "test:qa": "ENV=qa playwright test",
-        "test:prod": "ENV=prod playwright test",
-        "test:smoke": "PROFILE=smoke playwright test",
-        "test:regression": "PROFILE=regression playwright test",
-        "test:headed": "HEADLESS=false playwright test --headed",
-        "test:ui": "playwright test --ui",
-        "test:debug": "HEADLESS=false playwright test --debug",
-        "codegen": "playwright codegen https://demo.playwright.dev/todomvc",
-        "report": "playwright show-report playwright-report",
-        "lint": "eslint",
-        "lint:fix": "eslint --fix",
-        "format": "prettier --write .",
-        "format:check": "prettier --check .",
-        "type-check": "tsc --noEmit",
+        "prepare": "husky",
+        "lint": "eslint --fix",
+        "format": "prettier --write",
+        "type": "tsc --noEmit",
         "lint-staged": "lint-staged",
-        "clean": "rm -rf playwright-report test-results"
+        "test": "tsx scripts/runner.ts",
+        "codegen": "playwright codegen",
+        "report": "playwright show-report output/reports/html",
+        "clean": "rm -rf output"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "type": "commonjs",
+    "type": "module",
+    "imports": {
+        "#/src/*": "./src/*.ts",
+        "#/config/*": "./config/*.ts",
+        "#/tests/*": "./tests/*.ts",
+        "#/data/*": "./data/*.ts"
+    },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@playwright/test": "^1.64.0",
@@ -40,7 +37,9 @@
         "husky": "^9.1.7",
         "lint-staged": "^17.6.0",
         "prettier": "^3.9.10",
+        "tsx": "^4.23.15",
         "typescript": "^5.9.3",
-        "typescript-eslint": "^8.71.2"
+        "typescript-eslint": "^8.71.2",
+        "zod": "^4.6.7"
     }
 }

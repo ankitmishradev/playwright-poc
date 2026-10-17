@@ -1,31 +1,18 @@
-import { expect, test } from '@fixtures/test.fixture';
-import { todoData } from '@test-data/todos.data';
+import { test, expect } from '@playwright/test';
 
-test.describe('Todo list', { tag: '@smoke' }, () => {
-    test.beforeEach(async ({ todoPage }) => {
-        await todoPage.open();
+test.describe('Dummy test suite', () => {
+    test('should open the Playwright website', async ({ page }) => {
+        await page.goto('https://playwright.dev/');
+
+        await expect(page).toHaveTitle(/Playwright/);
+        await expect(
+            page.getByRole('link', { name: 'Get started' })
+        ).toBeVisible();
     });
 
-    test('adds a todo to the list', async ({ todoPage }) => {
-        await todoPage.add(todoData.single);
+    test('should perform a basic assertion', () => {
+        const result = 2 + 2;
 
-        await expect(todoPage.titles).toHaveText([todoData.single]);
-        await expect(todoPage.counter).toHaveText('1 item left');
-    });
-
-    test('adds several todos in order', async ({ todoPage }) => {
-        await todoPage.addAll(todoData.titles);
-
-        await expect(todoPage.titles).toHaveText([...todoData.titles]);
-        await expect(todoPage.counter).toContainText(
-            `${todoData.titles.length} items left`
-        );
-    });
-
-    test('clears the input after each entry', async ({ todoPage }) => {
-        await todoPage.add(todoData.longTitle);
-
-        await expect(todoPage.newTodo).toBeEmpty();
-        await expect(todoPage.titles).toHaveText([todoData.longTitle]);
+        expect(result).toBe(4);
     });
 });

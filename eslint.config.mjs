@@ -20,27 +20,13 @@ export default [
         languageOptions: {
             globals: globals.node,
             parserOptions: {
-                tsconfigRootDir: process.cwd(),
-                project: './tsconfig.json'
+                projectService: true,
+                tsconfigRootDir: import.meta.dirname
             }
         }
     },
     eslint.configs.recommended,
     ...tseslint.configs.recommendedTypeChecked,
-
-    {
-        files: ['src/**/*.{js,mjs,cjs,ts}'],
-        rules: {
-            '@typescript-eslint/no-unsafe-enum-comparison': 'off',
-            '@typescript-eslint/no-unsafe-call': 'off',
-            '@typescript-eslint/no-unsafe-member-access': 'off',
-            '@typescript-eslint/no-unsafe-argument': 'off',
-            '@typescript-eslint/no-unsafe-assignment': 'off',
-            '@typescript-eslint/no-unsafe-return': 'off',
-            '@typescript-eslint/no-namespace': 'off',
-            '@typescript-eslint/no-redundant-type-constituents': 'off'
-        }
-    },
 
     {
         files: ['tests/**/*.ts'],
@@ -54,5 +40,20 @@ export default [
             'playwright/expect-expect': 'error'
         }
     },
+
+    {
+        files: ['**/*.{js,mjs,cjs,ts}'],
+        rules: {
+            '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/no-namespace': 'off',
+            '@typescript-eslint/no-redundant-type-constituents': 'off'
+        }
+    },
+
     prettierPluginRecommended
 ];
