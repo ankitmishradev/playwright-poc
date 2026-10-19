@@ -2,7 +2,8 @@ export enum LogLevel {
     INFO = 'info',
     ERROR = 'error',
     WARN = 'warn',
-    DEBUG = 'debug'
+    DEBUG = 'debug',
+    DONE = 'done'
 }
 
 export enum LogColor {

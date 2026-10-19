@@ -9,6 +9,7 @@ const levels: Record<LogLevel, number> = {
     error: 0,
     warn: 1,
     info: 2,
+    done: 3,
     debug: 4
 };
 
@@ -16,6 +17,7 @@ const colors: Record<LogLevel, LogColor> = {
     error: LogColor.RED,
     warn: LogColor.YELLOW,
     info: LogColor.BLUE,
+    done: LogColor.GREEN,
     debug: LogColor.GREY
 };
 

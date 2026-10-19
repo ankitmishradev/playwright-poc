@@ -13,6 +13,7 @@ export interface LoggerInstance {
     warn: (message: string, args?: LogArgs) => void;
     error: (message: string, args?: ErrorLogArgs) => void;
     debug: (message: string, args?: LogArgs) => void;
+    done: (message: string, args?: LogArgs) => void;
 }
 
 export interface LogMeta {

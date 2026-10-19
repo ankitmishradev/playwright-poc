@@ -22,6 +22,13 @@ const info = (message: string, args: LogArgs = {}): void => {
 };
 
 /**
+ * Log an info message.
+ */
+const done = (message: string, args: LogArgs = {}): void => {
+    winstonLogger.info(message, args);
+};
+
+/**
  * Log a warning message.
  */
 const warn = (message: string, args: LogArgs = {}): void => {
@@ -64,7 +71,8 @@ const child = (defaults: { actor: string }): LoggerInstance => {
         warn: (message, args) => warn(message, withDefaults(args)),
         error: (message, args) =>
             error(message, { ...withDefaults(args), err: args?.err }),
-        debug: (message, args) => debug(message, withDefaults(args))
+        debug: (message, args) => debug(message, withDefaults(args)),
+        done: (message, args) => done(message, withDefaults(args))
     };
 };
 
@@ -73,5 +81,6 @@ export const logger: LoggerInstance & { child: typeof child } = {
     warn,
     error,
     debug,
-    child
+    child,
+    done
 };
