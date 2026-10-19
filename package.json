@@ -4,6 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
+        "setup": "npx tsx scripts/setup.ts",
         "prepare": "husky",
         "lint": "eslint --fix",
         "format": "prettier --write",
