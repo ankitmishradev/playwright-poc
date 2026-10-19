@@ -1,10 +1,51 @@
 import { mkdirSync } from 'node:fs';
 
-import { logger } from '#/src/logger/index';
-
 import { cli, describeFailure, type CliResult } from './cli.js';
 
-const log = logger.child({ actor: 'setup' });
+// ---------------------------------------------------------------------------
+// Console output (zero dependencies, so it works before `npm install`)
+// ---------------------------------------------------------------------------
+
+// Colors only when attached to a terminal; honors NO_COLOR / FORCE_COLOR
+const useColor = process.env.NO_COLOR
+    ? false
+    : Boolean(process.env.FORCE_COLOR) || Boolean(process.stdout.isTTY);
+
+const paint = (code: number) => (text: string) =>
+    useColor ? `\x1b[${code}m${text}\x1b[0m` : text;
+
+const c = {
+    bold: paint(1),
+    dim: paint(2),
+    red: paint(31),
+    green: paint(32),
+    yellow: paint(33),
+    cyan: paint(36)
+};
+
+const log = {
+    info: (msg: string) => console.log(`${c.cyan('ℹ')} ${msg}`),
+    step: (msg: string) => console.log(`${c.cyan('›')} ${c.bold(msg)}`),
+    done: (msg: string) => console.log(`${c.green('✔')} ${msg}`),
+    warn: (msg: string) => console.warn(`${c.yellow('⚠')} ${msg}`),
+    error: (msg: string) => console.error(`${c.red('✖')} ${c.red(msg)}`),
+    /** Indented, dimmed detail line under the previous message */
+    detail: (label: string, value: unknown) => {
+        const lines = String(value).split('\n');
+        console.error(`    ${c.dim(`${label}:`)} ${lines[0]}`);
+        for (const line of lines.slice(1))
+            console.error(`    ${' '.repeat(label.length + 2)}${line}`);
+    },
+    hint: (msg: string) =>
+        console.error(`    ${c.yellow('→ How to fix:')} ${msg}`)
+};
+
+const formatDuration = (ms: number) =>
+    ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
+
+// ---------------------------------------------------------------------------
+// Steps
+// ---------------------------------------------------------------------------
 
 const OUTPUT_DIRECTORIES = [
     'output/reports/html',
@@ -37,14 +78,11 @@ const fromCli = (result: CliResult, hint: string, detail?: string): Outcome =>
               hint,
               meta: {
                   command: result.command,
-                  exitCode: result.status,
+                  'exit code': result.status,
                   signal: result.signal,
                   stderr: result.stderr || undefined
               }
           };
-
-const formatDuration = (ms: number) =>
-    ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
 
 const steps: Step[] = [
     {
@@ -88,7 +126,7 @@ const steps: Step[] = [
                     reason: `${e.code ?? 'unknown error'}: ${e.message}`,
                     hint: 'Check write permissions for the project folder, or create the directories manually',
                     meta: {
-                        directories: OUTPUT_DIRECTORIES,
+                        directories: OUTPUT_DIRECTORIES.join(', '),
                         cwd: process.cwd()
                     }
                 };
@@ -130,57 +168,67 @@ const steps: Step[] = [
     }
 ];
 
-type StepReport = { title: string; reason: string; hint: string };
+// ---------------------------------------------------------------------------
+// Runner
+// ---------------------------------------------------------------------------
+
+type Failure = { title: string; reason: string; hint: string };
 
 const main = () => {
     const startedAt = Date.now();
-    const failures: StepReport[] = [];
+    const failures: Failure[] = [];
+    let skipped = 0;
+    let aborted = false;
 
     log.info(
-        `Starting project setup (${steps.length} steps) in ${process.cwd()}`
+        `Starting project setup ${c.dim(`(${steps.length} steps, cwd: ${process.cwd()})`)}`
     );
+    console.log();
 
     steps.forEach((step, index) => {
-        // After a fatal failure the remaining steps are skipped
-        if (failures.some((f) => steps.find((s) => s.title === f.title)?.fatal))
+        if (aborted) {
+            skipped++;
             return;
+        }
 
         const label = `[${index + 1}/${steps.length}] ${step.title}`;
         const stepStartedAt = Date.now();
 
-        log.info(`${label}...`);
+        log.step(`${label}...`);
         const outcome = step.run();
-        const took = formatDuration(Date.now() - stepStartedAt);
+        const took = c.dim(`(${formatDuration(Date.now() - stepStartedAt)})`);
 
         if (outcome.ok) {
-            log.info(`${label}: ${outcome.detail ?? 'done'} (${took})`);
+            log.done(`${outcome.detail ?? 'Done'} ${took}`);
+            console.log();
             return;
         }
 
-        log.error(
-            `${label}: FAILED after ${took}: ${outcome.reason}`,
-            outcome.meta
-        );
-        log.error(`  How to fix: ${outcome.hint}`);
+        log.error(`${step.title} failed ${took}`);
+        log.detail('reason', outcome.reason);
+        for (const [key, value] of Object.entries(outcome.meta ?? {})) {
+            if (value !== undefined && value !== null && value !== '')
+                log.detail(key, value);
+        }
+        log.hint(outcome.hint);
+        console.log();
+
         failures.push({
             title: step.title,
             reason: outcome.reason,
             hint: outcome.hint
         });
+        if (step.fatal) aborted = true;
     });
 
     const total = formatDuration(Date.now() - startedAt);
 
     if (failures.length === 0) {
-        log.info(`Project setup completed successfully in ${total}`);
+        log.done(
+            c.green(c.bold(`Project setup completed successfully in ${total}`))
+        );
         return;
     }
-
-    const skipped =
-        steps.length -
-        steps.findIndex((s) => s.title === failures[0]?.title) -
-        1;
-    const aborted = steps.find((s) => s.title === failures[0]?.title)?.fatal;
 
     log.error(
         `Project setup finished with ${failures.length} failed step(s) in ${total}` +
@@ -188,9 +236,10 @@ const main = () => {
                 ? ` and was aborted early (${skipped} step(s) skipped)`
                 : '')
     );
-    failures.forEach((f, i) =>
-        log.error(`  ${i + 1}. ${f.title}: ${f.reason}\n     Fix: ${f.hint}`)
-    );
+    failures.forEach((f, i) => {
+        console.error(`  ${i + 1}. ${c.bold(f.title)}: ${f.reason}`);
+        console.error(`     ${c.yellow('→')} ${f.hint}`);
+    });
 
     process.exitCode = 1;
 };
@@ -199,9 +248,9 @@ try {
     main();
 } catch (err) {
     log.error(
-        `Project setup crashed unexpectedly: ${err instanceof Error ? err.message : String(err)}. ` +
-            'This is likely a bug in the setup script itself',
-        { err }
+        `Project setup crashed unexpectedly: ${err instanceof Error ? err.message : String(err)}`
     );
+    log.detail('note', 'This is likely a bug in the setup script itself');
+    if (err instanceof Error && err.stack) log.detail('stack', err.stack);
     process.exitCode = 1;
 }
