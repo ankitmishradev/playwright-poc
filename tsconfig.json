@@ -21,7 +21,8 @@
             "#/src/*": ["./src/*.ts"],
             "#/config/*": ["./config/*.ts"],
             "#/tests/*": ["./tests/*.ts"],
-            "#/data/*": ["./data/*.ts"]
+            "#/data/*": ["./data/*.ts"],
+            "#/fixtures/*": ["./fixtures/*.ts"]
         }
     },
     "include": [

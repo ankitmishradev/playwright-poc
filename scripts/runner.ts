@@ -8,7 +8,9 @@ import {
     type Environment,
     DEFAULT_ENV
 } from '#/config/index';
+import { logger } from '#/src/logger/index';
 
+const log = logger.child({ actor: 'launcher' });
 const args = process.argv.slice(2);
 
 function getOption(name: string): string | undefined {
@@ -18,18 +20,15 @@ function getOption(name: string): string | undefined {
     if (index === -1) return undefined;
 
     const argument = args[index];
-
     if (argument === undefined) return undefined;
 
     const value = argument.slice(prefix.length);
-
     if (!value) {
-        console.error(`Missing value for --${name}`);
+        log.error(`Missing value for --${name}`);
         process.exit(1);
     }
 
     args.splice(index, 1);
-
     return value;
 }
 
@@ -41,14 +40,12 @@ const getEnvAndProject = () => {
     const isCorrectProject = SUPPORTED_PROJECTS.includes(project as Project);
 
     if (!isCorrectEnvironment) {
-        console.error(`Invalid environment: ${env}`);
-        console.error(`Allowed: ${SUPPORTED_ENVS.join(', ')}`);
+        log.error(`Invalid environment: ${env}`);
         process.exit(1);
     }
 
     if (project && !isCorrectProject) {
-        console.error(`Invalid project: ${project}`);
-        console.error(`Allowed: ${SUPPORTED_PROJECTS.join(', ')}`);
+        log.error(`Invalid project: ${project}`);
         process.exit(1);
     }
 
@@ -61,6 +58,10 @@ const runPlaywright = () => {
     const playwrightCli = fileURLToPath(
         import.meta.resolve('@playwright/test/cli')
     );
+
+    log.info('Executing playwright', {
+        meta: { env, project: project ?? 'all' }
+    });
 
     const result = spawnSync(
         process.execPath,
@@ -83,10 +84,12 @@ const runPlaywright = () => {
 };
 
 const run = () => {
+    log.info('Starting launcher');
+
     const result = runPlaywright();
 
     if (result.error) {
-        console.error(result.error.message);
+        log.error(result.error.message);
         process.exit(1);
     }
 

@@ -22,7 +22,8 @@
         "#/src/*": "./src/*.ts",
         "#/config/*": "./config/*.ts",
         "#/tests/*": "./tests/*.ts",
-        "#/data/*": "./data/*.ts"
+        "#/data/*": "./data/*.ts",
+        "#/fixtures/*": "./fixtures/*.ts"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
@@ -40,6 +41,7 @@
         "tsx": "^4.23.15",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.71.2",
+        "winston": "^3.19.0",
         "zod": "^4.6.7"
     }
 }
