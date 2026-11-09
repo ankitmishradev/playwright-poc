@@ -1,9 +1,4 @@
-const useColor = process.env.NO_COLOR
-    ? false
-    : Boolean(process.env.FORCE_COLOR) || Boolean(process.stdout.isTTY);
-
-const paint = (code: number) => (text: string) =>
-    useColor ? `\x1b[${code}m${text}\x1b[0m` : text;
+const paint = (code: number) => (text: string) => `\x1b[${code}m${text}\x1b[0m`;
 
 const c = {
     bold: paint(1),
